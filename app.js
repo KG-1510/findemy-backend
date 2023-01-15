@@ -1,16 +1,22 @@
 const express = require("express");
-const coursesRoutes = require("./courses/courses.routes");
-// import { onError, onNotFound } from './error/error.controller';
+const coursesRoutes = require("./routes/courses.route.js");
+require("dotenv/config");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
 
-/** Routes connection */
+// middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cors())
+
 app.use("/courses", coursesRoutes);
 
-/** Middleware Endpoints */
-//   app.use(onNotFound);
-//   app.use(onError);
+mongoose.connect(process.env.DB_CONNECTION, () => {
+  console.log("👍 Connection with MongoDB established successfully!");
+});
 
 app.listen(process.env.PORT || 3001, () => {
-  console.log("✅ Server is started at port: 3001");
+  console.log("✅ Server started at port: 3001");
 });
