@@ -33,6 +33,7 @@ const postUser = async (req, res, next) => {
         success: true,
         message: "New user created successfully!",
         token: generateAuthToken(user?._id.toString()),
+        data: user,
       });
     }
   } catch (err) {
@@ -203,6 +204,7 @@ const validate = (data) => {
     fullName: Joi.string().required().label("Full Name"),
     email: Joi.string().email().required().label("Email"),
     password: passwordComplexity().required().label("Password"),
+    imageurl: Joi.string().label("ImageURL"),
   });
   return schema.validate(data);
 };
