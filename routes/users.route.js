@@ -7,6 +7,7 @@ const {
   getUserCart,
   patchUserCart,
   postCourseEnroll,
+  postGiftedCourseEnroll,
 } = require("../controllers/users.controller");
 const { protect } = require("../middlewares/authMiddleware");
 
@@ -18,6 +19,7 @@ router.post("/addcart", protect, postAddCart);
 router.get("/getcart/:userId", protect, getUserCart);
 router.patch("/patchcart", protect, patchUserCart);
 router.post("/courseenroll", protect, postCourseEnroll);
+router.post("/giftedcourseenroll", protect, postGiftedCourseEnroll);
 router.get("/:id", protect, getUser);
 
 module.exports = router;

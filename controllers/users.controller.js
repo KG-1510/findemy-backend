@@ -83,7 +83,13 @@ const getUser = async (req, res, next) => {
 };
 
 const postAddCart = async (req, res, next) => {
-  const { userId, courseSlug } = req.body;
+  const {
+    userId,
+    courseSlug,
+    isGiftedCourse = false,
+    recipientEmail,
+  } = req.body;
+  console.log("isGiftedCourse", isGiftedCourse, recipientEmail);
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -92,13 +98,36 @@ const postAddCart = async (req, res, next) => {
         .json({ success: false, message: "User does not exist!" });
     } else {
       const course = await CourseDetails.findOne({ courseSlug });
+      const giftUser = await User.findOne({ email: recipientEmail });
       if (user.cart.some((item) => item.courseSlug === courseSlug)) {
         return res
           .status(400)
           .json({ success: false, message: "Course already exists in cart!" });
       } else {
-        user.cart.push(course);
-        await user.save();
+        if (isGiftedCourse && !giftUser) {
+          return res
+            .status(400)
+            .json({ success: false, message: "User is not registered!" });
+        } else if (isGiftedCourse && 
+          giftUser.coursesEnrolled.some(
+            (item) => item.courseSlug === courseSlug
+          )
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "User has already bought this course!",
+          });
+        }
+        if (isGiftedCourse && giftUser) {
+          user.cart = [];
+          await user.save();
+          course["isGiftedCourse"] = isGiftedCourse;
+          user.cart.push(course);
+          await user.save();
+        } else {
+          user.cart.push(course);
+          await user.save();
+        }
         res.status(200).json({
           success: true,
           message: "Course added to cart successfully!",
@@ -191,6 +220,37 @@ const postCourseEnroll = async (req, res, next) => {
   }
 };
 
+const postGiftedCourseEnroll = async (req, res, next) => {
+  const { userId, recipientEmail, coursesPurchased } = req.body;
+  try {
+    const recipientUser = await User.findOne({ email: recipientEmail });
+    const user = await User.findById(userId);
+
+    if (!recipientUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User does not exist!" });
+    } else {
+      recipientUser.coursesEnrolled = [
+        ...recipientUser.coursesEnrolled,
+        ...coursesPurchased,
+      ];
+      await recipientUser.save();
+      console.log(recipientUser.coursesEnrolled);
+      user.cart = [];
+      await user.save();
+      res.status(200).json({
+        success: true,
+        message: "Purchased and gifted course successfully!",
+        data: user,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(409).json({ success: false, message: err });
+  }
+};
+
 const generateAuthToken = (id) => {
   const token = jwt.sign({ id }, process.env.JWT_PRIVATE_KEY, {
     expiresIn: "7d",
@@ -217,4 +277,5 @@ module.exports = {
   getUserCart,
   patchUserCart,
   postCourseEnroll,
+  postGiftedCourseEnroll,
 };

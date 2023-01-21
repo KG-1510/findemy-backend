@@ -1,6 +1,13 @@
 const fs = require("fs");
+const sgMail = require("@sendgrid/mail");
 const path = require("path");
+var axios = require("axios");
+const dotenv = require("dotenv").config();
 const { Course, CourseDetails } = require("../models/courses.model");
+
+const SENDGRID_KEY = process.env.SENDGRID_API_KEY;
+
+sgMail.setApiKey(SENDGRID_KEY);
 
 const getCourses = async (req, res, next) => {
   try {
@@ -88,9 +95,119 @@ const getCourseVideo = async (req, res, next) => {
   }
 };
 
+const postMailSuccessPurchase = async (req, res, next) => {
+  const { fullName, email, coursesEnrolled } = req.body;
+  var data = JSON.stringify({
+    from: {
+      email: "guptakushagra15.10@gmail.com",
+    },
+    personalizations: [
+      {
+        to: [
+          {
+            email: email,
+          },
+        ],
+        dynamic_template_data: {
+          fullName: fullName,
+          email: email,
+          coursesEnrolled: coursesEnrolled,
+        },
+      },
+    ],
+    template_id: "d-4400bd099da54925977f6a4984e1a4ae",
+  });
+
+  console.log(data);
+
+  var config = {
+    method: "post",
+    url: "https://api.sendgrid.com/v3/mail/send",
+    headers: {
+      Authorization: `Bearer ${SENDGRID_KEY}`,
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios(config)
+    .then(function (response) {
+      console.log(JSON.stringify(response.data));
+      res.status(200).json({
+        success: true,
+        message: "Sent course purchase confirmation mail successfully!",
+      });
+    })
+    .catch(function (error) {
+      console.log(error);
+      res.status(409).json({ success: false, message: error });
+    });
+};
+
+const postGiftingSuccessPurchase = async (req, res, next) => {
+  const {
+    senderName,
+    senderEmail,
+    recipientFullName,
+    recipientEmail,
+    message,
+    coursesEnrolled,
+  } = req.body;
+  var data = JSON.stringify({
+    from: {
+      email: "guptakushagra15.10@gmail.com",
+    },
+    personalizations: [
+      {
+        to: [
+          {
+            email: recipientEmail,
+          },
+        ],
+        dynamic_template_data: {
+          senderName: senderName,
+          senderEmail: senderEmail,
+          recipientFullName: recipientFullName,
+          recipientEmail: recipientEmail,
+          message: message,
+          coursesEnrolled: coursesEnrolled,
+        },
+      },
+    ],
+    template_id: "d-db9eb50a2ef54df4a8aee018bad078ae",
+  });
+
+  console.log(data);
+
+  var config = {
+    method: "post",
+    url: "https://api.sendgrid.com/v3/mail/send",
+    headers: {
+      Authorization: `Bearer ${SENDGRID_KEY}`,
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios(config)
+    .then(function (response) {
+      console.log(JSON.stringify(response.data));
+      res.status(200).json({
+        success: true,
+        message: "Sent course purchase confirmation mail successfully!",
+      });
+    })
+    .catch(function (error) {
+      console.log(error);
+      res.status(409).json({ success: false, message: error });
+    });
+};
+
 module.exports = {
   getCourses,
   getCourseDetails,
   getSearchedCourses,
   getCourseVideo,
+  postMailSuccessPurchase,
+  postGiftingSuccessPurchase,
 };
