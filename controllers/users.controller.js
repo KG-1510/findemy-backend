@@ -99,7 +99,17 @@ const postAddCart = async (req, res, next) => {
     } else {
       const course = await CourseDetails.findOne({ courseSlug });
       const giftUser = await User.findOne({ email: recipientEmail });
-      if (user.cart.some((item) => item.courseSlug === courseSlug)) {
+      if (user.email === recipientEmail) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "You cannot gift a course to yourself! Purchase the course instead!",
+        });
+      }
+      if (
+        user.cart.some((item) => item.courseSlug === courseSlug) &&
+        !isGiftedCourse
+      ) {
         return res
           .status(400)
           .json({ success: false, message: "Course already exists in cart!" });
@@ -108,7 +118,8 @@ const postAddCart = async (req, res, next) => {
           return res
             .status(400)
             .json({ success: false, message: "User is not registered!" });
-        } else if (isGiftedCourse && 
+        } else if (
+          isGiftedCourse &&
           giftUser.coursesEnrolled.some(
             (item) => item.courseSlug === courseSlug
           )
