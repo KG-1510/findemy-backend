@@ -3,7 +3,7 @@ const sgMail = require("@sendgrid/mail");
 const path = require("path");
 var axios = require("axios");
 const dotenv = require("dotenv").config();
-const { Course, CourseDetails } = require("../models/courses.model");
+const { CourseDetails } = require("../models/courses.model");
 
 const SENDGRID_KEY = process.env.SENDGRID_API_KEY;
 
@@ -11,7 +11,7 @@ sgMail.setApiKey(SENDGRID_KEY);
 
 const getCourses = async (req, res, next) => {
   try {
-    const coursesData = await Course.find();
+    const coursesData = await CourseDetails.find();
     res.status(200).json({
       success: true,
       message: "Fetched courses successfully!",
@@ -45,7 +45,7 @@ const getCourseDetails = async (req, res, next) => {
 const getSearchedCourses = async (req, res, next) => {
   const queryString = req.query.query.toLowerCase();
   try {
-    const searchedCoursesData = await Course.find({
+    const searchedCoursesData = await CourseDetails.find({
       $text: { $search: queryString },
     }).exec();
     if (searchedCoursesData.length !== 0) {
