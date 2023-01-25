@@ -164,8 +164,8 @@ const getUserCart = async (req, res, next) => {
     let oldPriceTotal = 0;
     let newPriceTotal = 0;
     for (var i = 0; i < user.cart.length; i++) {
-      oldPriceTotal = user.cart[i].oldPrice;
-      newPriceTotal = user.cart[i].price;
+      oldPriceTotal = oldPriceTotal + user.cart[i].oldPrice;
+      newPriceTotal = newPriceTotal + user.cart[i].price;
     }
 
     res.status(200).json({
