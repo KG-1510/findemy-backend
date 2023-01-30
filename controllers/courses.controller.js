@@ -203,6 +203,30 @@ const postGiftingSuccessPurchase = async (req, res, next) => {
     });
 };
 
+const postCourse = async (req, res, next) => {
+  const data = req.body;
+  try {
+    const courseExist = await CourseDetails.findOne({
+      courseSlug: data.courseSlug,
+    });
+    if (courseExist) {
+      return res.status(409).json({
+        success: false,
+        message: "Course with given course name / course slug already exists!",
+      });
+    }
+    const course = await CourseDetails.create(data);
+    if (course) {
+      res.status(201).json({
+        success: true,
+        message: "New course added successfully!",
+      });
+    }
+  } catch (err) {
+    res.status(409).json({ success: false, message: err });
+  }
+};
+
 module.exports = {
   getCourses,
   getCourseDetails,
@@ -210,4 +234,5 @@ module.exports = {
   getCourseVideo,
   postMailSuccessPurchase,
   postGiftingSuccessPurchase,
+  postCourse,
 };
